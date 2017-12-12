@@ -33,6 +33,33 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         
         present(imagePicker, animated: true, completion: nil)
     }
+    
+    func detect(image: CIImage) {
+        //create an object called 'model' using the VNCoreModel container
+        //create a new object of Inceptionv3 and get its model property
+        //This model will be used to classify our image
+        
+        guard let model = try? VNCoreMLModel(for: Inceptionv3().model) else {
+            fatalError("Loading CoreML Model failed.")
+        }
+        
+        let request = VNCoreMLRequest(model: model) { (request, error) in
+            guard let result = request.results as? [VNClassificationObservation] else {
+                fatalError("Model failed to process the image")
+            }
+            
+            print(result)
+        }
+        //specify which image u want to specify
+        let handler = VNImageRequestHandler(ciImage: image)
+        //perform the request
+        do {
+           try handler.perform([request])
+        }catch {
+            print(error)
+        }
+        
+    }
     //after the image was picked
     //picker = imagePicker
     //inside the info parameter is contained the image that the user picked
@@ -41,12 +68,23 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         if let userPickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
             //set the image view to the image that was picked
             imageView.image = userPickedImage
+            
+            //convert it into a special type of image recognizable by CoreML
+            guard let ciImage = CIImage(image: userPickedImage) else {
+                fatalError("Could not convert to CIImage")
+            }
+            detect(image: ciImage)
+            
+            
         }
         
         //dismiss imagePicker
         imagePicker.dismiss(animated: true, completion: nil)
         
     }
+    
+    //method for processing the ciimage
+    
     
 
 }
