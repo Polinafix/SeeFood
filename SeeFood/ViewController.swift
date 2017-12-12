@@ -42,17 +42,24 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         guard let model = try? VNCoreMLModel(for: Inceptionv3().model) else {
             fatalError("Loading CoreML Model failed.")
         }
-        
+        //create a request that asks the model to classifythe data that we pass to it
         let request = VNCoreMLRequest(model: model) { (request, error) in
             guard let result = request.results as? [VNClassificationObservation] else {
                 fatalError("Model failed to process the image")
             }
             
-            print(result)
+           // print(result)
+            if let firstResult = result.first {
+                if firstResult.identifier.contains("hotdog"){
+                    self.navigationItem.title = "Hotdog"
+                }else {
+                    self.navigationItem.title = "Not Hotdog"
+                }
+            }
         }
-        //specify which image u want to specify
+        //specify which image(data)u want to pass
         let handler = VNImageRequestHandler(ciImage: image)
-        //perform the request
+        //perform the request of classifying the image
         do {
            try handler.perform([request])
         }catch {
